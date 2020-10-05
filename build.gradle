@@ -59,8 +59,8 @@ config {
     plugins {
         plugin {
             name                = 'jbang'
-            id                  = 'org.kordamp.gradle.jbang'
-            implementationClass = 'org.kordamp.gradle.plugin.jbang.JBangPlugin'
+            id                  = 'dev.jbang'
+            implementationClass = 'dev.jbang.gradle.JBangPlugin'
         }
     }
 
