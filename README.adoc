@@ -31,14 +31,14 @@ JBang by downloading and caching the latest version binaries (in your local Grad
 This plugin adds a new task of type `dev.jbang.gradle.tasks.JBangTask` named `jbang` that accepts the
 following properties
 
-[options="header", cols="5*<,^"]
+[options="header", cols="6*<,^"]
 |===
-| Property   | Type         | System            | Environment       | Default                         | Required
-| script     | String       | jbang.script      | JBANG_SCRIPT      |                                 | {required-icon}
-| args       | List<String> | jbang.args        | JBANG_ARGS        | [ ]                             | {optional-icon}
-| trusts     | List<String> | jbang.trusts      | JBANG_TRUSTS      | [ ]                             | {optional-icon}
-| version    | String       | jbang.version     | JBANG_VERSION     | 0.48.0                          | {optional-icon}
-| installDir | Directory    | jbang.install.dir | JBANG_INSTALL_DIR | $gradleUserHomeDir/caches/jbang | {optional-icon}
+| Property   | Type         | Option        | System            | Environment       | Default                         | Required
+| script     | String       | jbang-script  | jbang.script      | JBANG_SCRIPT      |                                 | {required-icon}
+| args       | List<String> | jbang-args    | jbang.args        | JBANG_ARGS        | [ ]                             | {optional-icon}
+| trusts     | List<String> | jbang-trusts  | jbang.trusts      | JBANG_TRUSTS      | [ ]                             | {optional-icon}
+| version    | String       | jbang-version | jbang.version     | JBANG_VERSION     | 0.48.0                          | {optional-icon}
+| installDir | Directory    |               | jbang.install.dir | JBANG_INSTALL_DIR | $gradleUserHomeDir/caches/jbang | {optional-icon}
 |===
 
 [horizontal]
@@ -49,12 +49,23 @@ link:https://github.com/jbangdev/jbang#urls-from-trusted-sources[URLs from Trust
 version:: If your environment lacks the JBang binaries in the PATH, you can specify the JBang version to be installed.
 The default value will be the plugin's version
 
-Task property values may be specified directly or using their respective environment variable, System property, or project
-property respectively, for example
+Task property values may be specified directly or using their respective environment variable, System property, project
+property, or task option respectively, for example the following invocations are equivalent
 
 [source]
 ----
+$ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
+
+// system properties
 $ gradle jbang -Djbang.script=hello.jsh -Djbang.args="Hello world"
+
+// project properties
+$ gradle jbang -Pjbang.script=hello.jsh -Pjbang.args="Hello world"
+
+// environment variables
+$ export JBANG_SCRIPT="hello.jsh"
+$ export JBANG_ARGS="Hello world"
+$ gradle jbang
 ----
 
 If the `link:https://kordamp.org/kordamp-gradle-plugins/#_org_kordamp_gradle_inline[org.kordamp.gradle.inline]` plugin
@@ -99,7 +110,7 @@ If you want to build your own release then execute the following
 
 [source]
 ----
-$ ./gradlew publishToMavenLocal
+$ ./gradlew -Prelease=true publishToMavenLocal
 ----
 
 This will push all artifacts to your local Maven repository from which you may consume them.

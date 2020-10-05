@@ -47,7 +47,7 @@ class JBangPlugin implements Plugin<Project> {
                 @Override
                 void execute(JBangTask t) {
                     t.group = 'Other'
-                    t.description = 'Executes JBang'
+                    t.description = 'Run JBang with the specified parameters.'
                 }
             })
     }

@@ -37,6 +37,7 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
+import org.gradle.api.tasks.options.Option
 import org.gradle.tooling.BuildException
 import org.gradle.wrapper.Download
 import org.gradle.wrapper.IDownload
@@ -52,8 +53,10 @@ import org.zeroturnaround.exec.ProcessResult
 
 import java.nio.file.Path
 
+import static org.kordamp.gradle.util.StringUtils.isBlank
+
 /**
- * Run JBang with the specified parameters
+ * Run JBang with the specified parameters.
  *
  * @author Andres Almiray
  */
@@ -82,6 +85,26 @@ class JBangTask extends DefaultTask {
         installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
     }
 
+    @Option(option = 'jbang-script', description = 'The script to be executed by JBang (REQUIRED).')
+    void setScript(String script) {
+        getScript().set(script)
+    }
+
+    @Option(option = 'jbang-version', description = 'The JBang version to be installed if missing (OPTIONAL).')
+    void setVersion(String version) {
+        getVersion().set(version)
+    }
+
+    @Option(option = 'jbang-args', description = 'The arguments to be used in the JBang script (if any) (OPTIONAL).')
+    void setArgs(String args) {
+        if (args) getArgs().set(args.split(',').toList())
+    }
+
+    @Option(option = 'jbang-trusts', description = 'URLs to be trusted (OPTIONAL).')
+    void setTrusts(String trusts) {
+        if (trusts) getTrusts().set(trusts.split(',').toList())
+    }
+
     // -- Write properties --
 
     @Internal
@@ -105,7 +128,7 @@ class JBangTask extends DefaultTask {
     }
 
     @Internal
-    DirectoryProperty getInstalldir() {
+    DirectoryProperty getInstallDir() {
         installDir.property
     }
 
@@ -144,6 +167,10 @@ class JBangTask extends DefaultTask {
 
     @TaskAction
     void runTask() {
+        if (isBlank(getResolvedScript().getOrNull())) {
+            throw new IllegalArgumentException("A value for script must be defined")
+        }
+
         detectJBang()
         executeTrust()
         executeJBang()
