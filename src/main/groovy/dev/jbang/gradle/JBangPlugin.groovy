@@ -21,29 +21,34 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-pluginManagement {
-    repositories {
-        jcenter()
-        gradlePluginPortal()
-        mavenLocal()
-    }
-    plugins {
-        id 'org.kordamp.gradle.groovy-project' version kordampPluginVersion
-        id 'org.kordamp.gradle.bintray'        version kordampPluginVersion
-        id 'org.kordamp.gradle.plugin'         version kordampPluginVersion
-        id 'com.github.johnrengelman.shadow'   version '6.0.0'
+package dev.jbang.gradle
+
+import dev.jbang.gradle.tasks.JBangTask
+import groovy.transform.CompileStatic
+import org.gradle.api.Action
+import org.gradle.api.Plugin
+import org.gradle.api.Project
+import org.gradle.api.plugins.BasePlugin
+
+/**
+ * Register a task named {@code jbang}.
+ *
+ * @author Andres Almiray
+ */
+@CompileStatic
+class JBangPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        Banner.display(project)
+
+        project.plugins.apply(BasePlugin)
+
+        project.tasks.register('jbang', JBangTask,
+            new Action<JBangTask>() {
+                @Override
+                void execute(JBangTask t) {
+                    t.group = 'Other'
+                    t.description = 'Executes JBang'
+                }
+            })
     }
 }
-
-buildscript {
-    repositories {
-        jcenter()
-        gradlePluginPortal()
-        mavenLocal()
-    }
-    dependencies {
-        classpath "org.kordamp.gradle:kordamp-parentbuild:$kordampBuildVersion"
-    }
-}
-
-apply plugin: 'org.kordamp.gradle.kordamp-parentbuild'

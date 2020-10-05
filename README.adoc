@@ -29,7 +29,7 @@ JBang by downloading and caching the latest version binaries (in your local Grad
 
 == Usage
 
-This plugin adds a new task of type `org.kordamp.gradle.plugin.jbang.tasks.JBangTask` named `jbang` that accepts the
+This plugin adds a new task of type `dev.jbang.gradle.tasks.JBangTask` named `jbang` that accepts the
 following properties
 
 [options="header", cols="5*<,^"]
