@@ -26,7 +26,6 @@ plugins {
     id 'groovy'
     id 'idea'
     id 'org.kordamp.gradle.groovy-project'
-    id 'org.kordamp.gradle.bintray'
     id 'org.kordamp.gradle.plugin'
     id 'com.github.johnrengelman.shadow'
 }
@@ -65,7 +64,7 @@ config {
     }
 
     bintray {
-        skipMavenSync = true
+        enabled = false
     }
 }
 
