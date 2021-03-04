@@ -51,6 +51,7 @@ import org.kordamp.gradle.property.StringState
 import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.ProcessResult
 
+import java.nio.file.Files
 import java.nio.file.Path
 
 import static org.kordamp.gradle.util.StringUtils.isBlank
@@ -79,7 +80,7 @@ class JBangTask extends DefaultTask {
         jbangCacheDirectory.set(new File(project.gradle.gradleUserHomeDir, 'caches/jbang'))
 
         script = SimpleStringState.of(this, 'jbang.script', '')
-        version = SimpleStringState.of(this, 'jbang.version', '0.48.0')
+        version = SimpleStringState.of(this, 'jbang.version', 'latest')
         args = SimpleListState.of(this, 'jbang.args', [])
         trusts = SimpleListState.of(this, 'jbang.trusts', [])
         installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
@@ -185,9 +186,13 @@ class JBangTask extends DefaultTask {
         if (result.getExitValue() == OK_EXIT_CODE) {
             logger.info('Found JBang v.' + result.outputString())
         } else {
-            logger.warn('JBang not found. Checking cached version ' + getResolvedVersion().get())
-
             String jbangVersion = getResolvedVersion().get()
+            logger.warn('JBang not found. Checking cached version ' + jbangVersion)
+
+            if ('latest' == jbangVersion) {
+                jbangVersion = resolveLatestVersion()
+            }
+
             Path jbangInstallPath = getResolvedInstallDir().get().getAsFile().toPath()
             Path installDir = jbangInstallPath.toAbsolutePath()
             jbangHome = installDir.resolve("jbang-${jbangVersion}".toString())
@@ -196,8 +201,8 @@ class JBangTask extends DefaultTask {
             if (result.getExitValue() == OK_EXIT_CODE) {
                 logger.info('Found JBang v.' + result.outputString())
             } else {
-                logger.warn('JBang not found. Downloading version ' + getResolvedVersion().get())
-                download()
+                logger.warn('JBang not found. Downloading version ' + jbangVersion)
+                download(jbangVersion)
                 result = version()
                 if (result.getExitValue() == OK_EXIT_CODE) {
                     logger.info('Using JBang v.' + result.outputString())
@@ -206,10 +211,8 @@ class JBangTask extends DefaultTask {
         }
     }
 
-    private void download() {
-        String jbangVersion = getResolvedVersion().get()
+    private void download(String jbangVersion) {
         Path jbangInstallPath = getResolvedInstallDir().get().getAsFile().toPath()
-
         Path installDir = jbangInstallPath.toAbsolutePath()
         String uri = String.format('https://github.com/jbangdev/jbang/releases/download/v%s/jbang-%s.zip', jbangVersion, jbangVersion)
 
@@ -235,6 +238,17 @@ class JBangTask extends DefaultTask {
         if (!IS_OS_WINDOWS) {
             jbangHome.resolve('bin').resolve('jbang').toFile().setExecutable(true, false)
         }
+    }
+
+    private String resolveLatestVersion() {
+        File localVersionsFile = Files.createTempFile('jbang', 'versions.txt').toFile()
+        String uri = 'https://www.jbang.dev/releases/latest/download/version.txt'
+
+        Logger logger = new Logger(false)
+        IDownload download = new Download(logger, 'jbang', 'latest')
+        logger.log('Downloading ' + uri)
+        download.download(uri.toURI(), localVersionsFile)
+        localVersionsFile.text.trim()
     }
 
     private ProcessResult version() throws BuildException {

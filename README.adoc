@@ -37,7 +37,7 @@ following properties
 | script     | String       | jbang-script  | jbang.script      | JBANG_SCRIPT      |                                 | {required-icon}
 | args       | List<String> | jbang-args    | jbang.args        | JBANG_ARGS        | [ ]                             | {optional-icon}
 | trusts     | List<String> | jbang-trusts  | jbang.trusts      | JBANG_TRUSTS      | [ ]                             | {optional-icon}
-| version    | String       | jbang-version | jbang.version     | JBANG_VERSION     | 0.48.0                          | {optional-icon}
+| version    | String       | jbang-version | jbang.version     | JBANG_VERSION     | latest                          | {optional-icon}
 | installDir | Directory    |               | jbang.install.dir | JBANG_INSTALL_DIR | $gradleUserHomeDir/caches/jbang | {optional-icon}
 |===
 
@@ -47,7 +47,8 @@ args:: The arguments to be used in the JBang script (if any)
 trusts:: If the script resides in a remote location, this parameter specifies what URLs should be trusted. See
 link:https://github.com/jbangdev/jbang#urls-from-trusted-sources[URLs from Trusted Sources] for more information
 version:: If your environment lacks the JBang binaries in the PATH, you can specify the JBang version to be installed.
-The default value will be the plugin's version
+The default value is set to `latest`, in which case the plugin will always check if the latest jbang release is installed
+and proceed to download it if that's not the case.
 
 Task property values may be specified directly or using their respective environment variable, System property, project
 property, or task option respectively, for example the following invocations are equivalent
@@ -85,7 +86,6 @@ Option #1
 ----
 buildscript {
     repositories {
-        jcenter()
         gradlePluginPortal()
     }
     dependencies {
