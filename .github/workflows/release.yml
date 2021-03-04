@@ -32,5 +32,18 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradlew-
 
-      - name: Build
+      - name: Release
         run: ./gradlew -Prelease=true -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} publishPlugins
+
+      - name: Version
+        id: version
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\/v/}
+
+      - name: Announce
+        uses: ethomson/send-tweet-action@v1
+        with:
+          status: "jbang gradle plugin v${{ steps.version.outputs.VERSION }} released https://plugins.gradle.org/plugin/dev.jbang"
+          consumer-key: ${{ secrets.TWITTER_API_KEY }}
+          consumer-secret: ${{ secrets.TWITTER_API_SECRET_KEY }}
+          access-token: ${{ secrets.TWITTER_ACCESS_TOKEN }}
+          access-token-secret: ${{ secrets.TWITTER_ACCESS_TOKEN_SECRET }}
