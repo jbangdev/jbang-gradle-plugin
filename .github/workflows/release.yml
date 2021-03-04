@@ -13,7 +13,7 @@ jobs:
     steps:
       - uses: actions/checkout@v2.3.4
 
-      - name: Set up JDK 1.8
+      - name: Set up Java
         uses: actions/setup-java@v1.4.3
         with:
           java-version: 1.8
@@ -34,6 +34,28 @@ jobs:
 
       - name: Release
         run: ./gradlew -Prelease=true -Pgradle.publish.key=${{ secrets.GRADLE_PUBLISH_KEY }} -Pgradle.publish.secret=${{ secrets.GRADLE_PUBLISH_SECRET }} publishPlugins
+
+      - name: Generate changelog
+        id: changelog
+        uses: metcalfc/changelog-generator@v0.4.4
+        with:
+          myToken: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Create GitHub Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: |
+            https://plugins.gradle.org/plugin/dev.jbang
+
+            ### Changelog
+            ${{ steps.changelog.outputs.changelog }}
+          draft: false
+          prerelease: false
 
       - name: Version
         id: version
