@@ -71,6 +71,7 @@ class JBangTask extends DefaultTask {
 
     private final StringState script
     private final StringState version
+    private final ListState options
     private final ListState args
     private final ListState trusts
     private final DirectoryState installDir
@@ -81,6 +82,7 @@ class JBangTask extends DefaultTask {
 
         script = SimpleStringState.of(this, 'jbang.script', '')
         version = SimpleStringState.of(this, 'jbang.version', 'latest')
+        options = SimpleListState.of(this, 'jbang.options', [])
         args = SimpleListState.of(this, 'jbang.args', [])
         trusts = SimpleListState.of(this, 'jbang.trusts', [])
         installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
@@ -94,6 +96,11 @@ class JBangTask extends DefaultTask {
     @Option(option = 'jbang-version', description = 'The JBang version to be installed if missing (OPTIONAL).')
     void setVersion(String version) {
         getVersion().set(version)
+    }
+
+    @Option(option = 'jbang-options', description = 'JBang options to be used by JBang when running the script (if any) (OPTIONAL).')
+    void setOptions(String options) {
+        if (options) getOptions().set(options.split(',').toList())
     }
 
     @Option(option = 'jbang-args', description = 'The arguments to be used in the JBang script (if any) (OPTIONAL).')
@@ -116,6 +123,11 @@ class JBangTask extends DefaultTask {
     @Internal
     Property<String> getVersion() {
         version.property
+    }
+
+    @Internal
+    ListProperty<String> getOptions() {
+        options.property
     }
 
     @Internal
@@ -144,6 +156,12 @@ class JBangTask extends DefaultTask {
     @Optional
     Provider<String> getResolvedVersion() {
         version.provider
+    }
+
+    @Input
+    @Optional
+    Provider<List<String>> getResolvedOptions() {
+        options.provider
     }
 
     @Input
@@ -282,7 +300,12 @@ class JBangTask extends DefaultTask {
     private void executeJBang() {
         List<String> command = command()
         StringBuilder executable = new StringBuilder(findJBangExecutable())
-        executable.append(' run ').append(getResolvedScript().get())
+        executable.append(' run ')
+        if (getResolvedOptions().get()) {
+            executable.append(' ').append(String.join(' ', getResolvedOptions().get()))
+        }
+
+        executable.append(getResolvedScript().get())
         if (getResolvedArgs().get()) {
             executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
         }
