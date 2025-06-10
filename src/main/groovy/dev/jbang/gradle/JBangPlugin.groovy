@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Copyright (c) 2020-2021 Andres Almiray.
+ * Copyright (c) 2020-2025 Andres Almiray.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -28,6 +28,7 @@ import groovy.transform.CompileStatic
 import org.gradle.api.Action
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.plugins.BasePlugin
 
 /**
@@ -38,7 +39,11 @@ import org.gradle.api.plugins.BasePlugin
 @CompileStatic
 class JBangPlugin implements Plugin<Project> {
     void apply(Project project) {
-        Banner.display(project)
+        if (project.gradle.startParameter.logLevel != LogLevel.QUIET) {
+            project.gradle.sharedServices
+                .registerIfAbsent('jbang-banner', Banner, { spec -> })
+                .get().display(project)
+        }
 
         project.plugins.apply(BasePlugin)
 
