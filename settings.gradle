@@ -26,6 +26,8 @@ pluginManagement {
         gradlePluginPortal()
         mavenCentral()
         mavenLocal()
+        // required for grgit/grgit-core/4.0.1
+        maven { url "https://artifactory.appodeal.com/appodeal-public/" }
     }
     plugins {
         id 'org.kordamp.gradle.groovy-project' version kordampPluginVersion
@@ -39,6 +41,8 @@ buildscript {
         gradlePluginPortal()
         mavenCentral()
         mavenLocal()
+        // required for grgit/grgit-core/4.0.1
+        maven { url "https://artifactory.appodeal.com/appodeal-public/" }
     }
     dependencies {
         classpath "org.kordamp.gradle:kordamp-parentbuild:$kordampBuildVersion"
