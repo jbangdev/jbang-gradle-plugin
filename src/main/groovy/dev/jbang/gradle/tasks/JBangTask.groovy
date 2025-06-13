@@ -302,13 +302,14 @@ class JBangTask extends DefaultTask {
         StringBuilder executable = new StringBuilder(findJBangExecutable())
         executable.append(' run ')
         if (getResolvedOptions().get()) {
-            executable.append(' ').append(String.join(' ', getResolvedOptions().get()))
+            executable.append(' ').append(String.join(' ', getResolvedOptions().get())).append(' ')
         }
 
         executable.append(getResolvedScript().get())
         if (getResolvedArgs().get()) {
             executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
         }
+
         command.add(executable.toString())
         ProcessResult result = execute(command)
         if (result.getExitValue() != 0) {
