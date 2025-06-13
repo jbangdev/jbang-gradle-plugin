@@ -70,15 +70,6 @@ $ export JBANG_ARGS="Hello world"
 $ gradle jbang
 ----
 
-If the `link:https://kordamp.org/kordamp-gradle-plugins/#_org_kordamp_gradle_inline[org.kordamp.gradle.inline]` plugin
-were to be applied to your build (via `settings.gradle`) then you may invoke this plugin without modifying your build file
-
-[source]
-[subs="attributes"]
-----
-$ gradle {project-group}:{project-name}:{project-version}:jbang -Pjbang.script=hello.java
-----
-
 == Installation
 
 Option #1
@@ -93,7 +84,7 @@ buildscript {
         classpath '{project-group}:{project-name}:{project-version}'
     }
 }
-apply plugin: '{project-group}.jbang'
+apply plugin: '{project-group}'
 ----
 
 Option #2

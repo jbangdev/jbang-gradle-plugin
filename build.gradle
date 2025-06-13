@@ -1,7 +1,7 @@
 /*
  * SPDX-License-Identifier: MIT
  *
- * Copyright (c) 2020-2021 Andres Almiray.
+ * Copyright (c) 2020-2025 Andres Almiray.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,7 +27,6 @@ plugins {
     id 'idea'
     id 'org.kordamp.gradle.groovy-project'
     id 'org.kordamp.gradle.plugin'
-    id 'com.github.johnrengelman.shadow'
 }
 
 config {
@@ -62,21 +61,12 @@ config {
             implementationClass = 'dev.jbang.gradle.JBangPlugin'
         }
     }
-
-    bintray {
-        enabled = false
-    }
 }
 
 repositories {
     mavenCentral()
     gradlePluginPortal()
-    flatDir { dir 'libs' }
     mavenLocal()
-}
-
-configurations {
-    uberjar
 }
 
 dependencies {
@@ -84,9 +74,8 @@ dependencies {
 
     api "org.kordamp.gradle:base-gradle-plugin:$kordampPluginVersion"
     api 'org.zeroturnaround:zt-exec:1.12'
-    api 'org.apache.commons:commons-compress:1.20'
+    api "org.apache.commons:commons-compress:$commonsCompressVersion"
     api "commons-io:commons-io:$commonsIoVersion"
-    uberjar ':gradle-wrapper:6.8.3'
 
     testImplementation('org.spockframework:spock-core:1.3-groovy-2.5') {
         exclude group: 'org.codehaus.groovy', module: 'groovy-all'
@@ -106,30 +95,3 @@ processResources {
         )
     }
 }
-
-sourceSets {
-    main {
-        compileClasspath += configurations.uberjar
-        runtimeClasspath += compileClasspath
-    }
-}
-
-idea {
-    module {
-        scopes.PROVIDED.plus += [configurations.uberjar]
-    }
-}
-
-shadowJar {
-    configurations    = [project.configurations.uberjar]
-    archiveBaseName   = project.name
-    archiveClassifier = ''
-    relocate 'org.gradle.wrapper', 'shaded.org.gradle.wrapper'
-    exclude 'gradle-wrapper-classpath.properties'
-    exclude 'gradle-wrapper-parameter-names.properties'
-    exclude 'gradle-cli-classpath.properties'
-    exclude 'gradle-cli-parameter-names.properties'
-    exclude 'org/gradle/cli/**'
-}
-
-jar.finalizedBy shadowJar
