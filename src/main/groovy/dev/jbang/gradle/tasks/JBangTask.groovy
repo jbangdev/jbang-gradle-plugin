@@ -289,7 +289,12 @@ class JBangTask extends DefaultTask {
             return
         }
         List<String> command = command()
-        command.add(findJBangExecutable() + ' trust add ' + String.join(' ', getResolvedTrusts().get()))
+        String trustCommand = findJBangExecutable() + ' trust add ' + String.join(' ', getResolvedTrusts().get())
+        command.add(trustCommand)
+
+        // Log the user-friendly trust command
+        logger.lifecycle("Executing JBang trust command: ${trustCommand}")
+
         ProcessResult result = execute(command)
         int exitValue = result.getExitValue()
         if (exitValue != 0 && exitValue != 1) {
@@ -311,6 +316,10 @@ class JBangTask extends DefaultTask {
         }
 
         command.add(executable.toString())
+
+        // Log the user-friendly JBang command
+        logger.lifecycle("Executing JBang command: ${executable.toString()}")
+
         ProcessResult result = execute(command)
         if (result.getExitValue() != 0) {
             throw new IllegalStateException('Error while executing JBang. Exit code: ' + result.getExitValue())
@@ -318,7 +327,7 @@ class JBangTask extends DefaultTask {
     }
 
     private ProcessResult execute(List<String> command) throws BuildException {
-        logger.info "jbang command = $command"
+        logger.debug "Full command with shell wrapper: $command"
         try {
             return new ProcessExecutor()
                 .command(command)
