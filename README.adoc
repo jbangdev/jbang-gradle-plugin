@@ -36,6 +36,7 @@ following properties
 |===
 | Property   | Type         | Option        | System            | Environment       | Default                         | Required
 | script     | String       | jbang-script  | jbang.script      | JBANG_SCRIPT      |                                 | {required-icon}
+| options    | List<String> | jbang-options | jbang.options     | JBANG_OPTIONS     | [ ]                             | {optional-icon}
 | args       | List<String> | jbang-args    | jbang.args        | JBANG_ARGS        | [ ]                             | {optional-icon}
 | trusts     | List<String> | jbang-trusts  | jbang.trusts      | JBANG_TRUSTS      | [ ]                             | {optional-icon}
 | version    | String       | jbang-version | jbang.version     | JBANG_VERSION     | latest                          | {optional-icon}
