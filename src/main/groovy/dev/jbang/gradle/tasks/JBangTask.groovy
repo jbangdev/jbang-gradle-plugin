@@ -336,7 +336,7 @@ class JBangTask extends DefaultTask {
     }
 
     private void unzip(File zipFile, Path installDir) throws IOException {
-        try (archive = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile)))) {
+        try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile)))) {
             ZipArchiveEntry entry
             while ((entry = archive.nextZipEntry) != null) {
                 if (entry.directory) continue
