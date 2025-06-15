@@ -158,8 +158,7 @@ class JBangTask extends DefaultTask {
         trusts.provider
     }
 
-    @Input
-    @Optional
+    @Internal
     Provider<Directory> getResolvedInstallDir() {
         installDir.provider
     }
