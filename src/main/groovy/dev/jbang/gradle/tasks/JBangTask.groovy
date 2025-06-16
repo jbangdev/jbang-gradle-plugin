@@ -281,12 +281,13 @@ class JBangTask extends DefaultTask {
 
     private void executeJBang() {
         List<String> command = command()
-        command.add(findJBangExecutable())
-        command.add("run")
-        command.add(getResolvedScript().get())
+        // A single string is needed, because if "sh -c jbang" is used for execution, the parameters need to be passed as single string
+        StringBuilder executable = new StringBuilder(findJBangExecutable())
+        executable.append(' run ').append("\"").append(getResolvedScript().get()).append("\"")
         if (getResolvedArgs().get()) {
-            command.addAll(getResolvedArgs().get())
+            executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
         }
+        command.add(executable.toString())
         ProcessResult result = execute(command)
         if (result.getExitValue() != 0) {
             throw new IllegalStateException('Error while executing JBang. Exit code: ' + result.getExitValue())
