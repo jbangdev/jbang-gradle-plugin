@@ -281,12 +281,12 @@ class JBangTask extends DefaultTask {
 
     private void executeJBang() {
         List<String> command = command()
-        StringBuilder executable = new StringBuilder(findJBangExecutable())
-        executable.append(' run ').append(getResolvedScript().get())
+        command.add(findJBangExecutable())
+        command.add("run")
+        command.add(getResolvedScript().get())
         if (getResolvedArgs().get()) {
-            executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
+            command.addAll(getResolvedArgs().get())
         }
-        command.add(executable.toString())
         ProcessResult result = execute(command)
         if (result.getExitValue() != 0) {
             throw new IllegalStateException('Error while executing JBang. Exit code: ' + result.getExitValue())
