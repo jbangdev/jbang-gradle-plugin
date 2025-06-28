@@ -21,29 +21,25 @@ project:
     - scripting
     - gradle
     - plugin
-  java:
-    groupId: dev.jbang
-    version: 8
+  languages:
+    java:
+      groupId: dev.jbang
+      version: 8
   inceptionYear: 2020
   stereotype: NONE
 
 release:
   github:
     overwrite: true
-    sign: true
     releaseName: '{{tagName}}'
     changelog:
       formatted: always
       preset: "conventional-commits"
       format: '- {{commitShortHash}} {{commitTitle}}'
 
-signing:
-  active: ALWAYS
-  armored: true
-
 announce:
   bluesky:
-    active: RELEASE
+    active: NEVER
     status: 'JBang Gradle plugin {{projectVersion}} has been released! {{releaseNotesUrl}}'
     handle: 'jbang.dev'
     host: https://bsky.social
