@@ -71,6 +71,7 @@ class JBangTask extends DefaultTask {
 
     private final StringState script
     private final StringState version
+    private final ListState jbangArgs
     private final ListState args
     private final ListState trusts
     private final DirectoryState installDir
@@ -81,6 +82,7 @@ class JBangTask extends DefaultTask {
 
         script = SimpleStringState.of(this, 'jbang.script', '')
         version = SimpleStringState.of(this, 'jbang.version', 'latest')
+        jbangArgs = SimpleListState.of(this, 'jbang.jbangArgs', [])
         args = SimpleListState.of(this, 'jbang.args', [])
         trusts = SimpleListState.of(this, 'jbang.trusts', [])
         installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
@@ -94,6 +96,11 @@ class JBangTask extends DefaultTask {
     @Option(option = 'jbang-version', description = 'The JBang version to be installed if missing (OPTIONAL).')
     void setVersion(String version) {
         getVersion().set(version)
+    }
+
+    @Option(option = 'jbang-jbang-args', description = 'JBang arguments to be used by JBang when running the script (if any) (OPTIONAL).')
+    void setJbangArgs(String jbangArgs) {
+        if (jbangArgs) getJbangArgs().set(jbangArgs.split(',').toList())
     }
 
     @Option(option = 'jbang-args', description = 'The arguments to be used in the JBang script (if any) (OPTIONAL).')
@@ -116,6 +123,11 @@ class JBangTask extends DefaultTask {
     @Internal
     Property<String> getVersion() {
         version.property
+    }
+
+    @Internal
+    ListProperty<String> getJbangArgs() {
+        jbangArgs.property
     }
 
     @Internal
@@ -144,6 +156,12 @@ class JBangTask extends DefaultTask {
     @Optional
     Provider<String> getResolvedVersion() {
         version.provider
+    }
+
+    @Input
+    @Optional
+    Provider<List<String>> getResolvedJbangArgs() {
+        jbangArgs.provider
     }
 
     @Input
@@ -271,7 +289,12 @@ class JBangTask extends DefaultTask {
             return
         }
         List<String> command = command()
-        command.add(findJBangExecutable() + ' trust add ' + String.join(' ', getResolvedTrusts().get()))
+        String trustCommand = findJBangExecutable() + ' trust add ' + String.join(' ', getResolvedTrusts().get())
+        command.add(trustCommand)
+
+        // Log the user-friendly trust command
+        logger.lifecycle("Executing JBang trust command: ${trustCommand}")
+
         ProcessResult result = execute(command)
         int exitValue = result.getExitValue()
         if (exitValue != 0 && exitValue != 1) {
@@ -283,11 +306,21 @@ class JBangTask extends DefaultTask {
         List<String> command = command()
         // A single string is needed, because if "sh -c jbang" is used for execution, the parameters need to be passed as single string
         StringBuilder executable = new StringBuilder(findJBangExecutable())
-        executable.append(' run ').append("\"").append(getResolvedScript().get()).append("\"")
+        executable.append(' run ')
+        if (getResolvedJbangArgs().get()) {
+            executable.append(' ').append(String.join(' ', getResolvedJbangArgs().get())).append(' ')
+        }
+
+        executable.append(getResolvedScript().get())
         if (getResolvedArgs().get()) {
             executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
         }
+
         command.add(executable.toString())
+
+        // Log the user-friendly JBang command
+        logger.lifecycle("Executing JBang command: ${executable.toString()}")
+
         ProcessResult result = execute(command)
         if (result.getExitValue() != 0) {
             throw new IllegalStateException('Error while executing JBang. Exit code: ' + result.getExitValue())
@@ -295,7 +328,7 @@ class JBangTask extends DefaultTask {
     }
 
     private ProcessResult execute(List<String> command) throws BuildException {
-        logger.info "jbang command = $command"
+        logger.debug "Full command with shell wrapper: $command"
         try {
             return new ProcessExecutor()
                 .command(command)
