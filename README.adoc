@@ -3,7 +3,7 @@
 :project-owner:   jbangdev
 :project-name:    jbang-gradle-plugin
 :project-group:   dev.jbang
-:project-version: 0.2.0
+:project-version: 0.3.0
 :plugin-id:       {project-group}
 ifndef::env-github[]
 endif::[]
