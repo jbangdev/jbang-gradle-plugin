@@ -71,7 +71,7 @@ class JBangTask extends DefaultTask {
 
     private final StringState script
     private final StringState version
-    private final ListState options
+    private final ListState jbangArgs
     private final ListState args
     private final ListState trusts
     private final DirectoryState installDir
@@ -82,7 +82,7 @@ class JBangTask extends DefaultTask {
 
         script = SimpleStringState.of(this, 'jbang.script', '')
         version = SimpleStringState.of(this, 'jbang.version', 'latest')
-        options = SimpleListState.of(this, 'jbang.options', [])
+        jbangArgs = SimpleListState.of(this, 'jbang.jbangArgs', [])
         args = SimpleListState.of(this, 'jbang.args', [])
         trusts = SimpleListState.of(this, 'jbang.trusts', [])
         installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
@@ -98,9 +98,9 @@ class JBangTask extends DefaultTask {
         getVersion().set(version)
     }
 
-    @Option(option = 'jbang-options', description = 'JBang options to be used by JBang when running the script (if any) (OPTIONAL).')
-    void setOptions(String options) {
-        if (options) getOptions().set(options.split(',').toList())
+    @Option(option = 'jbang-jbangArgs', description = 'JBang arguments to be used by JBang when running the script (if any) (OPTIONAL).')
+    void setJbangArgs(String jbangArgs) {
+        if (jbangArgs) getJbangArgs().set(jbangArgs.split(',').toList())
     }
 
     @Option(option = 'jbang-args', description = 'The arguments to be used in the JBang script (if any) (OPTIONAL).')
@@ -126,8 +126,8 @@ class JBangTask extends DefaultTask {
     }
 
     @Internal
-    ListProperty<String> getOptions() {
-        options.property
+    ListProperty<String> getJbangArgs() {
+        jbangArgs.property
     }
 
     @Internal
@@ -160,8 +160,8 @@ class JBangTask extends DefaultTask {
 
     @Input
     @Optional
-    Provider<List<String>> getResolvedOptions() {
-        options.provider
+    Provider<List<String>> getResolvedJbangArgs() {
+        jbangArgs.provider
     }
 
     @Input
@@ -306,8 +306,8 @@ class JBangTask extends DefaultTask {
         List<String> command = command()
         StringBuilder executable = new StringBuilder(findJBangExecutable())
         executable.append(' run ')
-        if (getResolvedOptions().get()) {
-            executable.append(' ').append(String.join(' ', getResolvedOptions().get())).append(' ')
+        if (getResolvedJbangArgs().get()) {
+            executable.append(' ').append(String.join(' ', getResolvedJbangArgs().get())).append(' ')
         }
 
         executable.append(getResolvedScript().get())
