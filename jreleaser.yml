@@ -31,7 +31,6 @@ project:
 release:
   github:
     overwrite: true
-    releaseName: '{{tagName}}'
     changelog:
       formatted: always
       preset: "conventional-commits"
