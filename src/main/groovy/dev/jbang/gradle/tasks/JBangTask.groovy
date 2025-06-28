@@ -98,7 +98,7 @@ class JBangTask extends DefaultTask {
         getVersion().set(version)
     }
 
-    @Option(option = 'jbang-jbangArgs', description = 'JBang arguments to be used by JBang when running the script (if any) (OPTIONAL).')
+    @Option(option = 'jbang-jbang-args', description = 'JBang arguments to be used by JBang when running the script (if any) (OPTIONAL).')
     void setJbangArgs(String jbangArgs) {
         if (jbangArgs) getJbangArgs().set(jbangArgs.split(',').toList())
     }
