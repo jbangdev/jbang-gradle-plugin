@@ -304,6 +304,7 @@ class JBangTask extends DefaultTask {
 
     private void executeJBang() {
         List<String> command = command()
+        // A single string is needed, because if "sh -c jbang" is used for execution, the parameters need to be passed as single string
         StringBuilder executable = new StringBuilder(findJBangExecutable())
         executable.append(' run ')
         if (getResolvedJbangArgs().get()) {
@@ -369,20 +370,16 @@ class JBangTask extends DefaultTask {
     }
 
     private void unzip(File zipFile, Path installDir) throws IOException {
-        ZipArchiveInputStream archive = null
-        try {
-            archive = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile)))
-
-            ZipArchiveEntry entry = null
+        try (ZipArchiveInputStream archive = new ZipArchiveInputStream(new BufferedInputStream(new FileInputStream(zipFile)))) {
+            ZipArchiveEntry entry
             while ((entry = archive.nextZipEntry) != null) {
                 if (entry.directory) continue
                 File file = installDir.resolve(entry.name).toFile()
                 file.parentFile.mkdirs()
-                IOUtils.copy(archive, new FileOutputStream(file))
+                try (FileOutputStream fos = new FileOutputStream(file)) {
+                    IOUtils.copy(archive, fos)
+                }
             }
-        } catch (IOException e) {
-            archive?.close()
-            throw e
         }
     }
 }
