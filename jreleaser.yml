@@ -1,0 +1,49 @@
+project:
+  name: jbang-gradle-plugin
+  description: The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build
+  longDescription: |
+    The JBang Gradle plugin allows JBang scripts to be executed during a Gradle build.
+    The plugin attempts to use an existing JBang installation. If no JBang installation is found, the plugin will install
+    JBang by downloading and caching the latest version binaries (in your local Gradle cache directory) for subsequent runs.
+  links:
+    homepage: https://jbang.dev
+    documentation: https://jbang.dev/documentation
+    license: https://github.com/jbangdev/jbang-gradle-plugin/blob/main/LICENSE
+  authors:
+    - Andres Almiray
+    - Max Rydahl Andersen
+  license: MIT
+  tags:
+    - jbang
+    - bash
+    - java
+    - shell
+    - scripting
+    - gradle
+    - plugin
+  java:
+    groupId: dev.jbang
+    version: 8
+  inceptionYear: 2020
+  stereotype: NONE
+
+release:
+  github:
+    overwrite: true
+    sign: true
+    releaseName: '{{tagName}}'
+    changelog:
+      formatted: always
+      preset: "conventional-commits"
+      format: '- {{commitShortHash}} {{commitTitle}}'
+
+signing:
+  active: ALWAYS
+  armored: true
+
+announce:
+  bluesky:
+    active: RELEASE
+    status: 'JBang Gradle plugin {{projectVersion}} has been released! {{releaseNotesUrl}}'
+    handle: 'jbang.dev'
+    host: https://bsky.social
