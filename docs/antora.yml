@@ -5,7 +5,8 @@ nav:
   - modules/ROOT/nav.adoc
 ext: 
   collector:
-    scan: 
+  - scan: 
+      dir: ./
       files: README.adoc
       into: modules/ROOT/pages
        

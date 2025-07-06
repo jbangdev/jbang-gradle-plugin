@@ -1,2 +1,5 @@
 //include::partial$nav.adoc[]
-include::pages/README.adoc[]
+// include::pages/README.adoc[]
+
+* xref:index.adoc[]
+* xref:README.adoc[]
