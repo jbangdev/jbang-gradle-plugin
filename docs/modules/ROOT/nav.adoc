@@ -1,0 +1,2 @@
+//include::partial$nav.adoc[]
+include::pages/README.adoc[]
