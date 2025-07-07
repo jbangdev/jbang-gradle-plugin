@@ -1,0 +1,1 @@
+* xref:jbang-gradle-plugin:ROOT:index.adoc[]
