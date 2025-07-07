@@ -1,4 +1,4 @@
-= jbang-gradle-plugin
+= JBang Gradle Plugin
 :linkattrs:
 :project-owner:   jbangdev
 :project-name:    jbang-gradle-plugin

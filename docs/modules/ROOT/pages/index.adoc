@@ -1,3 +1,0 @@
-= jpang-gradle-plugin
-
-Lorem ipsum...
