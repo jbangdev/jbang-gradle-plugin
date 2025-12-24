@@ -72,7 +72,6 @@ repositories {
 dependencies {
     compileOnly gradleApi()
 
-    api "org.kordamp.gradle:base-gradle-plugin:$kordampPluginVersion"
     api 'org.zeroturnaround:zt-exec:1.12'
     api "org.apache.commons:commons-compress:$commonsCompressVersion"
     api "commons-io:commons-io:$commonsIoVersion"

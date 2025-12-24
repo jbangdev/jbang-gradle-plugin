@@ -32,15 +32,15 @@ JBang by downloading and caching the latest version binaries (in your local Grad
 This plugin adds a new task of type `dev.jbang.gradle.tasks.JBangTask` named `jbang` that accepts the
 following properties
 
-[options="header", cols="6*<,^"]
+[options="header", cols="4*<,^"]
 |===
-| Property   | Type         | Option           | System            | Environment       | Default                         | Required
-| script     | String       | jbang-script     | jbang.script      | JBANG_SCRIPT      |                                 | {required-icon}
-| jbangArgs  | List<String> | jbang-jbang-args | jbang.jbangArgs   | JBANG_JBANG_ARGS  | [ ]                             | {optional-icon}
-| args       | List<String> | jbang-args       | jbang.args        | JBANG_ARGS        | [ ]                             | {optional-icon}
-| trusts     | List<String> | jbang-trusts     | jbang.trusts      | JBANG_TRUSTS      | [ ]                             | {optional-icon}
-| version    | String       | jbang-version    | jbang.version     | JBANG_VERSION     | latest                          | {optional-icon}
-| installDir | Directory    |                  | jbang.install.dir | JBANG_INSTALL_DIR | $gradleUserHomeDir/caches/jbang | {optional-icon}
+| Property   | Type         | Option           | Default                         | Required
+| script     | String       | jbang-script     |                                 | {required-icon}
+| jbangArgs  | List<String> | jbang-jbang-args | [ ]                             | {optional-icon}
+| args       | List<String> | jbang-args       | [ ]                             | {optional-icon}
+| trusts     | List<String> | jbang-trusts     | [ ]                             | {optional-icon}
+| version    | String       | jbang-version    | latest                          | {optional-icon}
+| installDir | Directory    |                  | $gradleUserHomeDir/caches/jbang | {optional-icon}
 |===
 
 [horizontal]
@@ -52,23 +52,10 @@ version:: If your environment lacks the JBang binaries in the PATH, you can spec
 The default value is set to `latest`, in which case the plugin will always check if the latest jbang release is installed
 and proceed to download it if that's not the case.
 
-Task property values may be specified directly or using their respective environment variable, System property, project
-property, or task option respectively, for example the following invocations are equivalent
-
+Example:
 [source]
 ----
 $ gradle jbang --jbang-script hello.jsh --jbang-args="Hello world"
-
-// system properties
-$ gradle jbang -Djbang.script=hello.jsh -Djbang.args="Hello world"
-
-// project properties
-$ gradle jbang -Pjbang.script=hello.jsh -Pjbang.args="Hello world"
-
-// environment variables
-$ export JBANG_SCRIPT="hello.jsh"
-$ export JBANG_ARGS="Hello world"
-$ gradle jbang
 ----
 
 == Installation

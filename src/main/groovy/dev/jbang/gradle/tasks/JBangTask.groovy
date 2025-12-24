@@ -28,13 +28,12 @@ import org.apache.commons.compress.archivers.zip.ZipArchiveEntry
 import org.apache.commons.compress.archivers.zip.ZipArchiveInputStream
 import org.apache.commons.compress.utils.IOUtils
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.Directory
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
-import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.Internal
+import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import org.gradle.api.tasks.options.Option
@@ -42,19 +41,12 @@ import org.gradle.tooling.BuildException
 import org.gradle.wrapper.Download
 import org.gradle.wrapper.IDownload
 import org.gradle.wrapper.Logger
-import org.kordamp.gradle.property.DirectoryState
-import org.kordamp.gradle.property.ListState
-import org.kordamp.gradle.property.SimpleDirectoryState
-import org.kordamp.gradle.property.SimpleListState
-import org.kordamp.gradle.property.SimpleStringState
-import org.kordamp.gradle.property.StringState
 import org.zeroturnaround.exec.ProcessExecutor
 import org.zeroturnaround.exec.ProcessResult
 
+import javax.inject.Inject
 import java.nio.file.Files
 import java.nio.file.Path
-
-import static org.kordamp.gradle.util.StringUtils.isBlank
 
 /**
  * Run JBang with the specified parameters.
@@ -64,28 +56,40 @@ import static org.kordamp.gradle.util.StringUtils.isBlank
 @CompileStatic
 class JBangTask extends DefaultTask {
     private static final boolean IS_OS_WINDOWS = System.getProperty('os.name')
-        .toLowerCase(Locale.ENGLISH)
-        .contains('windows')
+            .toLowerCase(Locale.ENGLISH)
+            .contains('windows')
 
     private static final int OK_EXIT_CODE = 0
 
-    private final StringState script
-    private final StringState version
-    private final ListState jbangArgs
-    private final ListState args
-    private final ListState trusts
-    private final DirectoryState installDir
+    @Input
+    final Property<String> script
+    @Input
+    @Optional
+    final Property<String> version
+    @Input
+    @Optional
+    final ListProperty<String> jbangArgs
+    @Input
+    @Optional
+    final ListProperty<String> args
+    @Input
+    @Optional
+    final ListProperty<String> trusts
+    @InputDirectory
+    @Optional
+    final DirectoryProperty installDir
 
-    JBangTask() {
+    @Inject
+    JBangTask(ObjectFactory objects) {
         DirectoryProperty jbangCacheDirectory = project.objects.directoryProperty()
         jbangCacheDirectory.set(new File(project.gradle.gradleUserHomeDir, 'caches/jbang'))
 
-        script = SimpleStringState.of(this, 'jbang.script', '')
-        version = SimpleStringState.of(this, 'jbang.version', 'latest')
-        jbangArgs = SimpleListState.of(this, 'jbang.jbangArgs', [])
-        args = SimpleListState.of(this, 'jbang.args', [])
-        trusts = SimpleListState.of(this, 'jbang.trusts', [])
-        installDir = SimpleDirectoryState.of(this, 'jbang.install.dir', jbangCacheDirectory.get())
+        script = objects.property(String).convention('')
+        version = objects.property(String).convention('latest')
+        jbangArgs = objects.listProperty(String).convention([])
+        args = objects.listProperty(String).convention([])
+        trusts = objects.listProperty(String).convention([])
+        installDir = objects.directoryProperty().convention(jbangCacheDirectory.get())
     }
 
     @Option(option = 'jbang-script', description = 'The script to be executed by JBang (REQUIRED).')
@@ -113,80 +117,9 @@ class JBangTask extends DefaultTask {
         if (trusts) getTrusts().set(trusts.split(',').toList())
     }
 
-    // -- Write properties --
-
-    @Internal
-    Property<String> getScript() {
-        script.property
-    }
-
-    @Internal
-    Property<String> getVersion() {
-        version.property
-    }
-
-    @Internal
-    ListProperty<String> getJbangArgs() {
-        jbangArgs.property
-    }
-
-    @Internal
-    ListProperty<String> getArgs() {
-        args.property
-    }
-
-    @Internal
-    ListProperty<String> getTrusts() {
-        trusts.property
-    }
-
-    @Internal
-    DirectoryProperty getInstallDir() {
-        installDir.property
-    }
-
-    // -- Read-only properties --
-
-    @Input
-    Provider<String> getResolvedScript() {
-        script.provider
-    }
-
-    @Input
-    @Optional
-    Provider<String> getResolvedVersion() {
-        version.provider
-    }
-
-    @Input
-    @Optional
-    Provider<List<String>> getResolvedJbangArgs() {
-        jbangArgs.provider
-    }
-
-    @Input
-    @Optional
-    Provider<List<String>> getResolvedArgs() {
-        args.provider
-    }
-
-    @Input
-    @Optional
-    Provider<List<String>> getResolvedTrusts() {
-        trusts.provider
-    }
-
-    @Input
-    @Optional
-    Provider<Directory> getResolvedInstallDir() {
-        installDir.provider
-    }
-
-    // -- execution --
-
     @TaskAction
     void runTask() {
-        if (isBlank(getResolvedScript().getOrNull())) {
+        if (!script.getOrNull()) {
             throw new IllegalArgumentException("A value for script must be defined")
         }
 
@@ -204,14 +137,14 @@ class JBangTask extends DefaultTask {
         if (result.getExitValue() == OK_EXIT_CODE) {
             logger.info('Found JBang v.' + result.outputString())
         } else {
-            String jbangVersion = getResolvedVersion().get()
+            String jbangVersion = version.get()
             logger.warn('JBang not found. Checking cached version ' + jbangVersion)
 
             if ('latest' == jbangVersion) {
                 jbangVersion = resolveLatestVersion()
             }
 
-            Path jbangInstallPath = getResolvedInstallDir().get().getAsFile().toPath()
+            Path jbangInstallPath = installDir.get().getAsFile().toPath()
             Path installDir = jbangInstallPath.toAbsolutePath()
             jbangHome = installDir.resolve("jbang-${jbangVersion}".toString())
 
@@ -230,7 +163,7 @@ class JBangTask extends DefaultTask {
     }
 
     private void download(String jbangVersion) {
-        Path jbangInstallPath = getResolvedInstallDir().get().getAsFile().toPath()
+        Path jbangInstallPath = installDir.get().getAsFile().toPath()
         Path installDir = jbangInstallPath.toAbsolutePath()
         String uri = String.format('https://github.com/jbangdev/jbang/releases/download/v%s/jbang-%s.zip', jbangVersion, jbangVersion)
 
@@ -274,22 +207,22 @@ class JBangTask extends DefaultTask {
         command.add(findJBangExecutable() + ' version')
         try {
             return new ProcessExecutor()
-                .command(command)
-                .readOutput(true)
-                .destroyOnExit()
-                .execute()
+                    .command(command)
+                    .readOutput(true)
+                    .destroyOnExit()
+                    .execute()
         } catch (Exception e) {
             throw new BuildException('Error while fetching the JBang version', e)
         }
     }
 
     private void executeTrust() {
-        if (!getResolvedTrusts().get()) {
+        if (!trusts.get()) {
             // No trust required
             return
         }
         List<String> command = command()
-        String trustCommand = findJBangExecutable() + ' trust add ' + String.join(' ', getResolvedTrusts().get())
+        String trustCommand = findJBangExecutable() + ' trust add ' + String.join(' ', trusts.get())
         command.add(trustCommand)
 
         // Log the user-friendly trust command
@@ -307,13 +240,13 @@ class JBangTask extends DefaultTask {
         // A single string is needed, because if "sh -c jbang" is used for execution, the parameters need to be passed as single string
         StringBuilder executable = new StringBuilder(findJBangExecutable())
         executable.append(' run ')
-        if (getResolvedJbangArgs().get()) {
-            executable.append(' ').append(String.join(' ', getResolvedJbangArgs().get())).append(' ')
+        if (jbangArgs.get()) {
+            executable.append(' ').append(String.join(' ', jbangArgs.get())).append(' ')
         }
 
-        executable.append(getResolvedScript().get())
-        if (getResolvedArgs().get()) {
-            executable.append(' ').append(String.join(' ', getResolvedArgs().get()))
+        executable.append(script.get())
+        if (args.get()) {
+            executable.append(' ').append(String.join(' ', args.get()))
         }
 
         command.add(executable.toString())
@@ -331,11 +264,11 @@ class JBangTask extends DefaultTask {
         logger.debug "Full command with shell wrapper: $command"
         try {
             return new ProcessExecutor()
-                .command(command)
-                .redirectOutput(System.out)
-                .redirectError(System.err)
-                .destroyOnExit()
-                .execute()
+                    .command(command)
+                    .redirectOutput(System.out)
+                    .redirectError(System.err)
+                    .destroyOnExit()
+                    .execute()
         } catch (Exception e) {
             throw new BuildException("Error while executing JBang", e)
         }
