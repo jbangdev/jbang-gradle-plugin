@@ -10,58 +10,19 @@ on:
 jobs:
   release:
     name: Release
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cancel previous run
-        uses: styfle/cancel-workflow-action@0.12.1
-        with:
-          access_token: ${{ secrets.GITHUB_TOKEN }}
-
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up Java
-        uses: actions/setup-java@v4
-        with:
-          java-version: 11
-          distribution: zulu
-          cache: gradle
-
-      - name: Set release version
-        run: |
-          echo "VERSION=${{ github.event.inputs.version }}" >> $GITHUB_OUTPUT
-          echo ${{ github.event.inputs.version }} > VERSION
-          git add VERSION
-          sed -i -e "s/^\:project-version\:\ .*/:project-version: ${{ github.event.inputs.version }}/g" README.adoc
-          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git config --global user.name "GitHub Action"
-          git commit -a -m "Releasing version ${{ github.event.inputs.version }}"
-          git push origin main
-
-      - name: Deploy to Plugin Portal
-        env:
-          GRADLE_PUBLISH_KEY: ${{ secrets.GRADLE_PUBLISH_KEY }}
-          GRADLE_PUBLISH_SECRET: ${{ secrets.GRADLE_PUBLISH_SECRET }}
-        run: ./gradlew -Prelease=true -Pfull-release=true -PreproducibleBuild=true publishPlugins -S
-
-      - name: Release
-        uses: jreleaser/release-action@v2
-        with:
-          arguments: full-release
-        env:
-          JRELEASER_PROJECT_VERSION: ${{ github.event.inputs.version }}
-          JRELEASER_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          JRELEASER_GPG_PASSPHRASE: ${{ secrets.GPG_PASSPHRASE }}
-          JRELEASER_GPG_PUBLIC_KEY: ${{ secrets.GPG_PUBLIC_KEY }}
-          JRELEASER_GPG_SECRET_KEY: ${{ secrets.GPG_SECRET_KEY }}
-          JRELEASER_BLUESKY_PASSWORD: ${{ secrets.BLUESKY_PASSWORD }}
-
-      - name: JReleaser output
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: artifact
-          path: |
-            out/jreleaser/trace.log
-            out/jreleaser/output.properties
+    uses: kordamp/kordamp-gradle-plugin-workflow/.github/workflows/release.yml@main
+    with:
+      version: ${{ github.event.inputs.version }}
+      java-version: 11
+    secrets:
+      github-token: ${{ secrets.GITHUB_TOKEN }}
+      gpg-passphrase: ${{ secrets.GPG_PASSPHRASE }}
+      gpg-public-key: ${{ secrets.GPG_PUBLIC_KEY }}
+      gpg-secret-key: ${{ secrets.GPG_SECRET_KEY }}
+      gpg-key-id: ${{ secrets.GPG_KEY_ID }}
+      gradle-publish-key: ${{ secrets.GRADLE_PUBLISH_KEY }}
+      gradle-publish-secret: ${{ secrets.GRADLE_PUBLISH_SECRET }}
+      mastodon-access-token: ${{ secrets.MASTODON_ACCESS_TOKEN }}
+      bluesky-host: ${{ secrets.BLUESKY_HOST }}
+      bluesky-handle: ${{ secrets.BLUESKY_HANDLE }}
+      bluesky-password: ${{ secrets.BLUESKY_PASSWORD }}
