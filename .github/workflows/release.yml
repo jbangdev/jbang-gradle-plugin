@@ -12,6 +12,7 @@ jobs:
     name: Release
     uses: kordamp/kordamp-gradle-plugin-workflow/.github/workflows/release.yml@main
     with:
+      jreleaser-version: latest
       version: ${{ github.event.inputs.version }}
       java-version: 11
     secrets:
