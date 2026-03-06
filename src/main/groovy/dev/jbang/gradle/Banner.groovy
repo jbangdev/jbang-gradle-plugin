@@ -67,7 +67,7 @@ abstract class Banner implements BuildService<Params> {
 
         boolean printBanner = null == System.getProperty(ORG_KORDAMP_BANNER) || Boolean.getBoolean(ORG_KORDAMP_BANNER)
 
-        File parent = new File(gradle.gradleUserHomeDir)
+        File parent = gradle.gradleUserHomeDir
         File markerFile = getMarkerFile(parent)
         if (!markerFile.exists()) {
             markerFile.parentFile.mkdirs()
