@@ -88,8 +88,9 @@ class JBangTask extends DefaultTask {
         trusts = objects.listProperty(String).convention([])
         installDir = objects.directoryProperty()
 
-        String userHome = System.getProperty('user.home')
-        installDir.convention(objects.directoryProperty().fileValue(new File(userHome, '.gradle' + File.separator + 'caches' + File.separator + 'jbang')))
+        File gradleUserHome = project.gradle.gradleUserHomeDir ?:
+                new File(System.getProperty('user.home'), '.gradle')
+        installDir.convention(objects.directoryProperty().fileValue(new File(gradleUserHome, 'caches' + File.separator + 'jbang')))
     }
 
     @Option(option = 'jbang-script', description = 'The script to be executed by JBang (REQUIRED).')
@@ -135,33 +136,65 @@ class JBangTask extends DefaultTask {
     private Path jbangHome
 
     private void detectJBang() {
-        ProcessResult result = version()
-        if (result.getExitValue() == OK_EXIT_CODE) {
-            logger.info('Found JBang v.' + result.outputString())
-        } else {
-            String jbangVersion = version.get()
-            logger.warn('JBang not found. Checking cached version ' + jbangVersion)
+        // 1. JBang on the PATH
+        if (foundJBangAt(null)) return
 
-            if ('latest' == jbangVersion) {
+        // 2. JBang's own installation directory ($JBANG_DIR, defaults to <user.home>/.jbang)
+        logger.info('JBang not found on PATH. Checking JBang installation directory')
+        if (foundJBangAt(resolveJBangDir())) return
+
+        // 3. plugin cache. Resolving 'latest' requires the network, so it happens as late as possible
+        Path cacheDir = installDir.get().asFile.toPath().toAbsolutePath()
+        String jbangVersion = version.get()
+        if ('latest' == jbangVersion) {
+            logger.info('No local JBang installation found. Resolving the latest JBang version')
+            try {
                 jbangVersion = resolveLatestVersion()
-            }
-
-            Path jbangInstallPath = installDir.get().getAsFile().toPath()
-            Path installDir = jbangInstallPath.toAbsolutePath()
-            jbangHome = installDir.resolve("jbang-${jbangVersion}".toString())
-
-            result = version()
-            if (result.getExitValue() == OK_EXIT_CODE) {
-                logger.info('Found JBang v.' + result.outputString())
-            } else {
-                logger.warn('JBang not found. Downloading version ' + jbangVersion)
-                download(jbangVersion)
-                result = version()
-                if (result.getExitValue() == OK_EXIT_CODE) {
-                    logger.info('Using JBang v.' + result.outputString())
-                }
+            } catch (Exception e) {
+                throw new IllegalStateException(noJBangMessage('the latest JBang version could not be resolved: ' + e.message), e)
             }
         }
+        logger.info('Checking cached version ' + jbangVersion + ' at ' + cacheDir)
+        Path cachedJBangHome = cacheDir.resolve("jbang-${jbangVersion}".toString())
+        if (foundJBangAt(cachedJBangHome)) return
+
+        // 4. download
+        logger.warn('JBang not found. Downloading version ' + jbangVersion)
+        try {
+            download(jbangVersion)
+        } catch (Exception e) {
+            throw new IllegalStateException(noJBangMessage('JBang ' + jbangVersion + ' could not be downloaded: ' + e.message), e)
+        }
+        if (!foundJBangAt(cachedJBangHome)) {
+            throw new IllegalStateException('JBang ' + jbangVersion + ' could not be executed after installing it at ' + cachedJBangHome)
+        }
+    }
+
+    private String noJBangMessage(String reason) {
+        'JBang could not be found and ' + reason + '\n' +
+                'Looked for JBang on the PATH, at ' + resolveJBangDir().resolve('bin') +
+                ' ($JBANG_DIR/bin) and in ' + installDir.get().asFile + '.\n' +
+                'Install JBang (https://www.jbang.dev/download/), set $JBANG_DIR, or pin the jbang task to a version ' +
+                'already present in the cache to build without network access.'
+    }
+
+    /**
+     * Probes JBang at the given home directory ({@code null} means the PATH) and remembers it when it works.
+     */
+    private boolean foundJBangAt(Path home) {
+        jbangHome = home
+        ProcessResult result = version()
+        if (result.getExitValue() == OK_EXIT_CODE) {
+            logger.info('Found JBang v.' + result.outputString().trim() + ' at ' + (home ?: 'PATH'))
+            return true
+        }
+        jbangHome = null
+        return false
+    }
+
+    private static Path resolveJBangDir() {
+        String jbangDir = System.getenv('JBANG_DIR')
+        jbangDir ? new File(jbangDir).toPath() : new File(System.getProperty('user.home'), '.jbang').toPath()
     }
 
     private void download(String jbangVersion) {

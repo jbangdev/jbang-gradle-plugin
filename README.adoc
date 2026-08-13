@@ -49,8 +49,16 @@ args:: The arguments to be used in the JBang script (if any)
 trusts:: If the script resides in a remote location, this parameter specifies what URLs should be trusted. See
 link:https://github.com/jbangdev/jbang#urls-from-trusted-sources[URLs from Trusted Sources] for more information
 version:: If your environment lacks the JBang binaries in the PATH, you can specify the JBang version to be installed.
-The default value is set to `latest`, in which case the plugin will always check if the latest jbang release is installed
-and proceed to download it if that's not the case.
+JBang is looked up in this order, and the first hit wins:
++
+. `jbang` on the PATH.
+. JBang's own installation directory, `$JBANG_DIR/bin` (defaulting to `$HOME/.jbang/bin`), which is where the official
+JBang installers and the link:https://github.com/jbangdev/setup-jbang[setup-jbang] GitHub Action put it.
+. The plugin cache at `installDir/jbang-<version>`.
+. Otherwise the given version is downloaded into the plugin cache.
++
+The default value is `latest`, which is resolved over the network only when steps 1-3 all miss. Pin `version` to an
+explicit release (e.g. `0.141.0`) to keep the build fully offline once the cache is warm.
 
 Example:
 [source]
