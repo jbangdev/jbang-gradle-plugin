@@ -139,13 +139,14 @@ class JBangTask extends DefaultTask {
         // 1. JBang on the PATH
         if (foundJBangAt(null)) return
 
-        // 2. JBang's own installation directory ($JBANG_DIR, defaults to <user.home>/.jbang)
+        // 2. JBang's own installation directory ($JBANG_DIR, defaults to <user.home>/.jbang).
+        //    Unlike the PATH, this one is only used when it provides the requested version.
+        String jbangVersion = version.get()
         logger.info('JBang not found on PATH. Checking JBang installation directory')
-        if (foundJBangAt(resolveJBangDir())) return
+        if (foundJBangAt(resolveJBangDir(), 'latest' == jbangVersion ? null : jbangVersion)) return
 
         // 3. plugin cache. Resolving 'latest' requires the network, so it happens as late as possible
         Path cacheDir = installDir.get().asFile.toPath().toAbsolutePath()
-        String jbangVersion = version.get()
         if ('latest' == jbangVersion) {
             logger.info('No local JBang installation found. Resolving the latest JBang version')
             try {
@@ -180,13 +181,18 @@ class JBangTask extends DefaultTask {
 
     /**
      * Probes JBang at the given home directory ({@code null} means the PATH) and remembers it when it works.
+     * With a {@code requiredVersion}, an installation reporting a different version is skipped.
      */
-    private boolean foundJBangAt(Path home) {
+    private boolean foundJBangAt(Path home, String requiredVersion = null) {
         jbangHome = home
         ProcessResult result = version()
         if (result.getExitValue() == OK_EXIT_CODE) {
-            logger.info('Found JBang v.' + result.outputString().trim() + ' at ' + (home ?: 'PATH'))
-            return true
+            String foundVersion = result.outputString().trim()
+            if (requiredVersion == null || requiredVersion == foundVersion) {
+                logger.info('Found JBang v.' + foundVersion + ' at ' + (home ?: 'PATH'))
+                return true
+            }
+            logger.info('Skipping JBang v.' + foundVersion + ' at ' + home + ', version ' + requiredVersion + ' was requested')
         }
         jbangHome = null
         return false
